@@ -1,0 +1,37 @@
+---
+# yamllint disable rule:line-length
+
+- hosts: etcd_cluster
+  become: true
+  become_method: sudo
+  any_errors_fatal: true
+  gather_facts: true
+  vars_files:
+    - vars/main.yml
+    - vars/system.yml
+    - "vars/{{ ansible_os_family }}.yml"
+
+  pre_tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+      environment: "{{ proxy_env | default({}) }}"
+      when: ansible_os_family == "Debian" and installation_method == "repo"
+
+    - name: Make sure the gnupg and apt-transport-https packages are present
+      apt:
+        pkg:
+          - gnupg
+          - apt-transport-https
+        state: present
+      environment: "{{ proxy_env | default({}) }}"
+      when: ansible_os_family == "Debian" and installation_method == "repo"
+
+  roles:
+    - role: hostname
+    - role: timezone
+
+    - role: etcd
+
+...

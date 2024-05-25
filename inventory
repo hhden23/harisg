@@ -1,0 +1,42 @@
+# Please specify the ip addresses and connection settings for your environment
+# The specified ip addresses will be used to listen by the cluster components.
+
+# "hostname=" variable is optional (used to change the server name)
+
+# if dcs_exists: false and dcs_type: "etcd" (in vars/main.yml)
+[etcd_cluster]  # recommendation: 3 or 5-7 nodes
+10.128.0.111
+10.128.0.112
+10.128.0.113
+
+# PostgreSQL nodes
+[master]
+10.128.0.111 postgresql_exists='false'
+
+[replica]
+10.128.0.112 postgresql_exists='false'
+
+[dreplica]
+10.128.0.113 postgresql_exists='false'
+
+[postgres_cluster:children]
+master
+replica
+dreplica
+
+# In this example, all components will be installed on PostgreSQL nodes
+# You can deploy the etcd cluster and the haproxy balancers on other dedicated servers.
+
+# if pgbackrest_install: true and "repo_host" is set (in vars/main.yml)
+[pgbackrest]  # optional (Dedicated Repository Host)
+10.128.0.113
+
+# Connection settings
+[all:vars]
+ansible_connection='ssh'
+ansible_ssh_port='22'
+ansible_user='root'
+
+[pgbackrest:vars]
+ansible_user='root'
+#ansible_ssh_pass='{{ ansible_ssh_pass }}'

@@ -1,0 +1,33 @@
+---
+
+- hosts: postgres_cluster
+  become: true
+  become_method: sudo
+  gather_facts: true
+  any_errors_fatal: true
+  vars_files:
+    - vars/main.yml
+    - /home/postgres/build/creds.yml
+    - vars/system.yml
+    - "vars/{{ ansible_os_family }}.yml"
+
+  roles:
+
+#    - role: patroni
+    - role: pg-profile
+      when: is_master == "true" and postgresql_extensions | length > 0
+
+
+    # Cron Jobs and bash profile
+    - role: cron
+
+    # vmagent (telemetry) config
+    - role: vmagent
+
+    # postfix (mail) service enable and start
+    - role: postfix
+
+    # finish (info)
+    - role: deploy-finish
+
+...
